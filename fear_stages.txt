@@ -1,0 +1,30 @@
+Stage	Description	Program Type	Sound Name 1	Sound Name 2	Number of Presounds	Number of Sounds	Inter-sound Interval Minimum (seconds)	Inter-sound Interval Maximum (seconds)	Number of Shocks	Shock Duration (ms)	Shock Delivery Type	Shock Onset Minimum (ms)	Shock Onset Maximum (ms)	Number of VNS Stims	Type of VNS	VNS Delay (ms)	VNS Duration	Record Video	Extra Time	Stims Per Sound
+NO-AFC	NO SHOCK - 4 DAYS	Rimenez	war zone (30 seconds)		0	8	90	180	0	2000	Front	27950	28050	0	Off	0	30000	Off	30000	1
+AFC Day 1	8CS-US 100% PAIRED	Rimenez	war zone (30 seconds)		2	8	90	180	8	2000	Front	27950	28050	0	Off	0	30000	Off	30000	1
+AFC Day 2	8CS-US 50% PAIRED	Rimenez	war zone (30 seconds)		0	8	90	180	4	2000	Random	27950	28050	0	Off	0	30000	Off	30000	1
+AFC Day 3	SHORT TRACE CONDITIONING	Rimenez	war zone (30 seconds)		0	8	90	180	8	2000	Front	33000	42000	0	Off	0	30000	Off	30000	1
+AFC Day 4	LONG TRACE CONDITIONING	Rimenez	war zone (30 seconds)		0	8	90	180	8	2000	Front	33000	50000	0	Off	0	30000	Off	30000	1
+AFC Day 5	AVOIDANCE CONDITIONING	Rimenez	war zone (30 seconds)		0	2	60	120	2	2000	Front	27950	28050	0	Off	0	30000	Off	30000	1
+																				1
+AFC REINSTATEMENT	1US - NO SOUND	Rimenez	2khz10s		0	1	180	181	1	2000	Front	27950	28050	0	Off	0	30000	Off	60000	1
+																				1
+																				1
+THERAPY 30S VNS	PAIRED VNS	Rimenez	war zone (30 seconds)		0	5	90	180	0	2000	Front	5000	8000	5	Paired Front	-150	30000	Off	30000	1
+MULTIPLE VNS 4x	PAIRED VNS 4X	Rimenez	war zone (30 seconds)		0	5	90	180	0	2000	Front	5000	8000	5	Paired Front	-150	500	Off	30000	4
+MULTIPLE VNS 16x	PAIRED VNS 16X	Rimenez	war zone (30 seconds)		0	5	90	180	0	2000	Front	5000	8000	5	Paired Front	-150	500	Off	30000	16
+SHAM STIM	NO VNS	Rimenez	war zone (30 seconds)		0	5	90	180	0	2000	Front	5000	8000	0	Paired Front	0	30000	Off	30000	1
+VNS ONLY	NO SOUND	Rimenez	war zone (30 seconds)		0	0	90	180	0	2000	Back	5000	8000	5	Unpaired	0	30000	Off	30000	1
+																				1
+SOUND/VNS CHECK	1CS+VNS	Rimenez	war zone (30 seconds)		0	1	10	15	0	2000	Front	5000	8000	1	Paired Front	0	30000	Off	30000	1
+																				1
+SHOCK/SOUND TEST	David Test Stage 3	David	war zone (30 seconds)		0	1	10	15	1	2000	Random	5000	8000	0	Off	0	30000	Off	15000	1
+DAVID4	David Test Stage 4 - Paired VNS	David	war zone (30 seconds)		0	8	60	70	0	2000	Front	5000	8000	6	Paired Back	0	30000	Off	0	1
+DAVID5	David Test Stage 5 - Paired VNS Delayed	David	gunfire		0	8	10	15	0	2000	Front	5000	8000	6	Paired Front	2000	30000	Off	0	1
+DAVID6	David Test Stage 6 - Unpaired VNS	David	war zone (30 seconds)		0	3	45	60	0	2000	Front	5000	8000	6	Paired Front	0	2000	Off	0	6
+																				
+																				
+																				
+																				
+LINDSEY AFC	AFC SEPARATED - SHOCK!!	LINDSEY	twitter		0	4	5	15	1	1000	Random	1000	2000	0	Off	0	0	Off	0	0
+																				
+LINDSEY EXT	SEPARATED - EXTINCTION	LINDSEY	twitter		0	4	5	15	0	1000	Random	1000	2000	0	Off	0	0	Off	0	0
