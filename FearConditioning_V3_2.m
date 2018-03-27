@@ -1,4 +1,8 @@
-function FearConditioning_V3_2
+function FearConditioning_V3_2 ( debug_mode )
+
+    if (nargin < 1)
+        debug_mode = 0;
+    end
 
     %Initialize the behavior session state to be 0 (not running)
     global run;
@@ -36,7 +40,7 @@ function FearConditioning_V3_2
     handles.require_rat_name_change = 1;
     handles.require_rat_stage_change = 1;
     handles.ardy_connected = ~isempty(handles.ardy);
-    handles.no_ardy_debug_mode = 0;
+    handles.no_ardy_debug_mode = debug_mode;
 
     %Initialize some variables and paths here where they'll be easier to find and change.
 
@@ -132,6 +136,8 @@ function RunBehavior(handles)
     %Now choose actual times at which to play the sounds
     timings_of_non_pre_sounds = sound_schedule(end-handles.num_sounds+1:end);
     timings_of_paired_sounds = timings_of_non_pre_sounds(which_sounds_to_pair);
+    
+    %Choose actual times for each shock (calculated as an offset from sound onset)
     shock_schedule = nan(1, length(timings_of_paired_sounds));
     for t = 1:length(timings_of_paired_sounds)
         shock_schedule(t) = timings_of_paired_sounds(t) + randi([handles.shockonsetmin handles.shockonsetmax]);
@@ -145,6 +151,9 @@ function RunBehavior(handles)
 
         if (strcmpi(handles.vns_type, 'Unpaired'))
             
+                %In "Unpaired" mode, the VNS stim schedule is calculated independent of the sound and shock schedule.
+                %The interval between VNS stims uses the same interval as the sounds use (isimin and isimax).
+            
                 %Decide on times to deliver VNS
                 vns_intervals = randi([handles.isimin handles.isimax], 1, handles.vns_stim_count);
     
@@ -152,6 +161,13 @@ function RunBehavior(handles)
                 vns_schedule = cumsum(vns_intervals) * 1000;
                 
         else
+            
+            %If the stims are not "unpaired", then they are likely "paired". There are a few choices for "paired" stimulation.
+            %"Paired Front" will pair sounds with VNS, starting with the very first sound in the sound schedule (like a left-justify in text editing)
+            %"Paired Back" will pair sounds with VNS, but will "right-justify" them, so that the last VNS is paired with the last sound.
+            %"Paired Random" will choose randomly from among the set of sounds to be played and pair VNS with that random selection.
+            %"Centered Between (First Before)" will act like "Paired Front", but VNS stims will 
+            
             %Check to see if the stage specifies a "paired" form of VNS
             if (strcmpi(handles.vns_type, 'Paired Front'))
                 sounds_array = 1:handles.num_sounds;
@@ -164,7 +180,7 @@ function RunBehavior(handles)
             elseif (strcmpi(handles.vns_type, 'Paired Random'))
                 rand_perm_of_sounds = randperm(handles.num_sounds);
                 total_stims = min(handles.vns_stim_count, handles.num_sounds);
-                which_sounds_to_pair_vns = sort(rand_per_of_sounds(1:total_stims));
+                which_sounds_to_pair_vns = sort(rand_perm_of_sounds(1:total_stims));
             end
             
             %For sounds that contain multiple VNS stims, calculate the interval between stims
@@ -173,10 +189,70 @@ function RunBehavior(handles)
             %Calculate the base VNS timings
             timings_of_paired_vns_sounds = timings_of_non_pre_sounds(which_sounds_to_pair_vns);
             
+            %Now let's offset VNS by a constant amount if the user has requested a VNS delay/offset
+            if (any(isletter(handles.vns_delay)))
+                %Handle the case where the user has specified a categorical VNS delay/offset, such as centered VNS stims between sounds
+                if (strcmpi(handles.vns_delay, 'centered after'))
+                    ends_of_each_sound = timings_of_paired_vns_sounds + sound_duration;
+                    intervals_between_sounds = [timings_of_paired_vns_sounds Inf] - [0 ends_of_each_sound];
+                    
+                    %Remove the first interval, which is bogus
+                    if (length(intervals_between_sounds) > 1)
+                        intervals_between_sounds = intervals_between_sounds(2:end);
+                    end
+                    
+                    %The last interval, which is "Infinity", will be set to the mean of all of the other intervals
+                    if (length(intervals_between_sounds) > 1)
+                        if (isinf(intervals_between_sounds(end)))
+                            intervals_between_sounds(end) = nanmean(intervals_between_sounds(1:end-1));
+                        end
+                    end
+                    
+                    %Calculate the timings
+                    if (length(ends_of_each_sound) == length(intervals_between_sounds))
+                        timings_of_paired_vns_sounds = ends_of_each_sound + (intervals_between_sounds / 2) - (sound_duration / 2);
+                    end
+                    
+                elseif (strcmpi(handles.vns_delay, 'centered before'))
+                    ends_of_each_sound = timings_of_paired_vns_sounds + sound_duration;
+                    intervals_between_sounds = [timings_of_paired_vns_sounds Inf] - [0 ends_of_each_sound];
+                    
+                    %Remove the last interval, which is bogus
+                    if (length(intervals_between_sounds) > 1)
+                        intervals_between_sounds = intervals_between_sounds(1:end-1);
+                    end
+                    
+                    %The first interval will be set to the mean of all of the other intervals
+                    if (length(intervals_between_sounds) > 1)
+                        intervals_between_sounds(1) = nanmean(intervals_between_sounds(2:end));
+                    end
+                    
+                    %Calculate the timings
+                    if (length(ends_of_each_sound) == length(intervals_between_sounds))
+                        timings_of_paired_vns_sounds = timings_of_paired_vns_sounds - (intervals_between_sounds / 2) - (sound_duration / 2);
+                    end
+                    
+                    %If the first VNS is less than 0, we need to offset the ENTIRE session so that the first VNS is >= 0
+                    if (timings_of_paired_vns_sounds(1) < 0)
+                        vns_offset_below_zero = abs(timings_of_paired_vns_sounds(1));
+                        
+                        %Offset the sounds
+                        sound_schedule = sound_schedule + vns_offset_below_zero;
+                        
+                        %Offset the shocks
+                        shock_schedule = shock_schedule + vns_offset_below_zero;
+                        
+                        %Offset the VNS times
+                        timings_of_paired_vns_sounds = timings_of_paired_vns_sounds + vns_offset_below_zero;
+                    end
+                end
+            end
+            
             %Now calculate the final VNS timings based on sounds that contain multiple stims
             final_vns_timings = [];
             for i = 1:length(timings_of_paired_vns_sounds)
                 
+                %Calculate the offset of each stim by evenly spacing them within the duration of the sound
                 new_vns_timings = timings_of_paired_vns_sounds(i) * ones(1, handles.stims_per_sound);
                 offset_array = 0:(handles.stims_per_sound-1);
                 offset_array = offset_array .* intervals_between_single_sound_stims;
@@ -185,11 +261,17 @@ function RunBehavior(handles)
                 final_vns_timings = [final_vns_timings new_vns_timings];
             end
             
+            %Determine the VNS schedule
             timings_of_paired_vns_sounds = sort(final_vns_timings);
-            
             vns_schedule = nan(1, length(timings_of_paired_vns_sounds));
-            for t = 1:length(timings_of_paired_vns_sounds)
-                vns_schedule(t) = timings_of_paired_vns_sounds(t) + handles.vns_delay;
+            
+            if (~any(isletter(handles.vns_delay)))
+                %Handle the case where the user has specified a numeric VNS delay/offset
+                for t = 1:length(timings_of_paired_vns_sounds)
+                    vns_schedule(t) = timings_of_paired_vns_sounds(t) + handles.vns_delay;
+                end
+            else
+                vns_schedule = timings_of_paired_vns_sounds;
             end
             
         end
@@ -377,7 +459,7 @@ function RunBehavior(handles)
         loop_end = toc;
         
         loop_difference = loop_end - loop_start;
-        disp(num2str(loop_difference));
+        %disp(num2str(loop_difference));
         
         %Pause momentarily (33 ms) so we don't hog the processor
         pause(0.033);
